@@ -87,6 +87,43 @@ children = findobj(h,'type','axes');
 n = length(children);
 paperwidth = 345;
 
+xlabels = get(children,'Xlabel');
+ylabels = get(children,'Ylabel');
+xtext = cellfun(@(x)get(x,'String'),xlabels,'uniformoutput',false);
+ytext = cellfun(@(x)get(x,'String'),ylabels,'uniformoutput',false);
+
+hf = figure;
+ha = axes;
+
+extents = zeros(2*n,4);
+
+for k = 1:n
+    ht = text(0,0,xtext{k},'FontName','Times','FontSize',9,'Units','Points','Parent',ha);
+    extents(k,:) = get(ht,'Extent');
+    ht = text(0,0,ytext{k},'FontName','Times','FontSize',9,'Units','Points','Parent',ha);
+    extents(k+n,:) = get(ht,'Extent');
+end
+
+ht = text(0,0,'X','FontName','Times','FontSize',9,'Units','Points','Parent',ha);
+close(hf);
+
+[~,mxlabeli] = max(extents(1:n,4));
+[~,mylabeli] = max(extents(n+1:end,4));
+
+mxlabel = xtext{mxlabeli};
+mylabel = ytext{mylabeli};
+
+exlabel = cellfun(@isempty,xtext);
+eylabel = cellfun(@isempty,ytext);
+
+if all(exlabel)
+    xtext{exlabel} = '\phantom{X}';
+end
+
+if all(eylabel)
+    ytext{eylabel} = '\phantom{X}';
+end
+
 switch n
     case 1
         ratio = inv((sqrt(5)+1)/2);
