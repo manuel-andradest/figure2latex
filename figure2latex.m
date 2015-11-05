@@ -46,7 +46,7 @@ end
 h = gcf;
 fileout = 'test.tex';
 replace = true;
-            
+
 if ~isgraphics(h,'figure')
     error('figure2latex:noValidHandle',...
         'Invalid figure handle.');
@@ -71,7 +71,7 @@ fontsize = [10 9];
 [fid,errmsg] = fopen(fileout,'wt','n','UTF-8');
 
 if fid == -1
-error('figure2latex:FileOperation',...
+    error('figure2latex:FileOperation',...
         errmsg);
 end
 
@@ -139,7 +139,7 @@ for k = 1:n
         ytext{k} = sprintf('\\vphantom{%s}',maxylabel);
     end
 end
-    
+
 switch n
     case 1
         ratio = inv((sqrt(5)+1)/2);
@@ -151,9 +151,9 @@ end
 
 paperwidth = 345;
 paperheight = round(paperwidth*ratio);
-axesheight = round(paperheight/n-lextent(1)-fontsize(2)*2.5-11);
-axeswidth = round(paperwidth-sum(textent)-lextent(2)-11);
-paperheight = axesheight*n;
+axesheight = round(paperheight/n-lextent(1)-fontsize(2)*2);
+axeswidth = round(paperwidth-sum(textent)-lextent(2));
+% paperheight = axesheight*n;
 
 fprintf(fid,'\\usepackage[papersize={%dpt,%dpt},body={%dpt,%dpt}]{geometry}\n',...
     paperwidth,paperheight,paperwidth,paperheight);
@@ -163,26 +163,45 @@ fprintf(fid,'\\setlength\\parindent{0pt}\n\\pagestyle{empty}\n\n');
 
 fprintf(fid,'\\begin{document}\n');
 
+style = 2;
+switch style
+    case 1
+        stylestr = 'strong colors';
+    case 2
+        stylestr = 'vary dashing';
+    case 3
+        stylestr = 'cross marks';
+    case 4
+        stylestr = 'vary thickness and dashing';
+end
+
 for k = n:-1:1
-  fprintf(fid,'\\begin{tikzpicture}\n\\datavisualization [\n');
-  fprintf(fid,'scientific axes={width=%dpt,height=%dpt,inner ticks},\n',axeswidth,axesheight);
-  fprintf(fid,'x axis={attribute=xdata, label={%s}},\n',latexfy(xtext{k}));
-  fprintf(fid,'y axis={attribute=ydata, label={%s}},\n',latexfy(ytext{k}));
-  fprintf(fid,'visualize as smooth line\n]');
-  fprintf(fid,'data {\nxdata, ydata\n');
-  lh = findobj(children(k),'type','line');
-  xdata = get(lh(1),'XData');
-  for m = 1:1
-      ydata = get(lh(m),'YData');
-  end
-  data = [xdata;ydata];
-  fprintf(fid,'%f,%f\n',data);
-  if k > 1
-      newline = '\\[-1pt]';
-  else
-      newline = '';
-  end
-  fprintf(fid,'};\n\\end{tikzpicture}%s\n',newline);
+    lh = findobj(children(k),'type','line');
+    mm = length(lh);
+    fprintf(fid,'\\begin{tikzpicture}\n\\datavisualization [\n');
+    fprintf(fid,'scientific axes={width=%dpt,height=%dpt,inner ticks},\n',axeswidth,axesheight);
+    fprintf(fid,'x axis={label={%s}},\n',latexfy(xtext{k}));
+    fprintf(fid,'y axis={label={%s}},\n',latexfy(ytext{k}));
+    datastr = sprintf('data%d,',1:mm);
+    datastr = datastr(1:end-1);
+    fprintf(fid,'visualize as smooth line/.list={%s},\nstyle sheet=%s]\n',datastr,stylestr);
+    for m = 1:mm
+        fprintf(fid,'data [set=data%d] {\nx, y\n',m);
+        xdata = get(lh(m),'XData');
+        ydata = get(lh(m),'YData');
+        fprintf(fid,'%f,%f\n',[xdata;ydata]);
+        if m == mm
+            fprintf(fid,'};\n');
+        else
+            fprintf(fid,'}\n');
+        end
+    end
+    if k > 1
+        newline = '\\';
+    else
+        newline = '';
+    end
+    fprintf(fid,'\\end{tikzpicture}%s\n',newline);
 end
 
 fprintf(fid,'\n\\end{document}');
