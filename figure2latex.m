@@ -180,6 +180,7 @@ for k = n:-1:1
     mm = length(lh);
     fprintf(fid,'\\begin{tikzpicture}\n\\datavisualization [\n');
     fprintf(fid,'scientific axes={width=%dpt,height=%dpt,inner ticks},\n',axeswidth,axesheight);
+    fprintf(fid,'all axes={ticks={style={/pgf/number format/precision=2,/pgf/number format/fixed relative}}},\n');
     fprintf(fid,'x axis={label={%s}},\n',latexfy(xtext{k}));
     fprintf(fid,'y axis={label={%s}},\n',latexfy(ytext{k}));
     datastr = sprintf('data%d,',1:mm);
